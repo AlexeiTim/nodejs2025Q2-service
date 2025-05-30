@@ -9,7 +9,7 @@ export class TrackService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   create(createTrackDto: CreateTrackDto) {
-    return 'This action adds a new track';
+    return this.databaseService.tracks.create(createTrackDto);
   }
 
   findAll() {
