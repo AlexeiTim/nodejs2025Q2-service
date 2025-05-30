@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserStore } from './store/user.store';
+import { UserStore } from './store/user-store.interface';
+import { UserNotFoundException } from './exeptions/user-not-found.exeption';
 
 @Injectable()
 export class UserService {
-  constructor(private userStore: UserStore) {}
+  constructor(@Inject('UserStore') private userStore: UserStore) {}
 
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
@@ -15,8 +16,10 @@ export class UserService {
     return this.userStore.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: string) {
+    const user = this.userStore.findUnique(id);
+    if (!user) throw new UserNotFoundException();
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

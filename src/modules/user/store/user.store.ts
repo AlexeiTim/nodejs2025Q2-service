@@ -2,14 +2,22 @@ import { randomUUID } from 'crypto';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
 
-const users: User[] = [];
+const TEST_USER: User = {
+  id: randomUUID(),
+  createdAt: 1,
+  login: '',
+  password: '',
+  updatedAt: 1,
+  version: 1,
+};
 
-interface InMemoryUserStore {
-  create: (dto: CreateUserDto) => User;
-  findMany: () => User[];
-}
+const users: User[] = [TEST_USER];
 
-export class UserStore implements InMemoryUserStore {
+export class InMemoryUserStore {
+  findUnique(id: string): User {
+    return users.find((user) => user.id === id);
+  }
+
   findMany(): User[] {
     return users;
   }
