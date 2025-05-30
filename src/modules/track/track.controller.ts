@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -32,12 +34,16 @@ export class TrackController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
-    return this.trackService.update(+id, updateTrackDto);
+  update(
+    @Param() params: TrackParamsDto,
+    @Body() updateTrackDto: UpdateTrackDto,
+  ) {
+    return this.trackService.update(params.id, updateTrackDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.trackService.remove(+id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param() params: TrackParamsDto) {
+    return this.trackService.remove(params.id);
   }
 }

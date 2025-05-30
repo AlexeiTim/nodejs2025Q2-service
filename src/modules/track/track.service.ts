@@ -22,11 +22,15 @@ export class TrackService {
     return track;
   }
 
-  update(id: number, updateTrackDto: UpdateTrackDto) {
-    return `This action updates a #${id} track`;
+  update(id: string, updateTrackDto: UpdateTrackDto) {
+    const track = this.databaseService.tracks.findUnique(id);
+    if (!track) throw new TrackNotFoundException();
+    return this.databaseService.tracks.update(id, updateTrackDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} track`;
+  remove(id: string) {
+    const track = this.databaseService.tracks.findUnique(id);
+    if (!track) throw new TrackNotFoundException();
+    return this.databaseService.tracks.delete(id);
   }
 }
