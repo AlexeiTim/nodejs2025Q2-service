@@ -10,6 +10,7 @@ import {
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { TrackParamsDto } from './dto/track-params.dto';
 
 @Controller('track')
 export class TrackController {
@@ -26,8 +27,8 @@ export class TrackController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.trackService.findOne(+id);
+  findOne(@Param() params: TrackParamsDto) {
+    return this.trackService.findOne(params.id);
   }
 
   @Patch(':id')

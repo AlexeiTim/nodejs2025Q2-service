@@ -15,4 +15,8 @@ export class InMemoryTrackStore implements TrackStore {
   findMany(): Track[] {
     return tracks;
   }
+
+  findUnique(id: string) {
+    return tracks.find((track) => track.id === id);
+  }
 }

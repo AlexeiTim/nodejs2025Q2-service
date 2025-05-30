@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { DatabaseService } from '../database/database.service';
+import { TrackNotFoundException } from './exceptions/track-not-found.exception';
 
 @Injectable()
 export class TrackService {
@@ -15,8 +16,10 @@ export class TrackService {
     return this.databaseService.tracks.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} track`;
+  findOne(id: string) {
+    const track = this.databaseService.tracks.findUnique(id);
+    if (!track) throw new TrackNotFoundException();
+    return track;
   }
 
   update(id: number, updateTrackDto: UpdateTrackDto) {
