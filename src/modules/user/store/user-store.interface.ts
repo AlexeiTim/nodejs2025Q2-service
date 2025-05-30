@@ -5,4 +5,5 @@ export interface UserStore {
   create: (dto: CreateUserDto) => User;
   findMany: () => User[];
   findUnique: (id: string) => User;
+  delete: (id: string) => void;
 }

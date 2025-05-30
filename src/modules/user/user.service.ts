@@ -9,7 +9,7 @@ export class UserService {
   constructor(@Inject('UserStore') private userStore: UserStore) {}
 
   create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+    return this.userStore.create(createUserDto);
   }
 
   findAll() {
@@ -26,7 +26,9 @@ export class UserService {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string) {
+    const user = this.userStore.findUnique(id);
+    if (!user) throw new UserNotFoundException();
+    return this.userStore.delete(id);
   }
 }

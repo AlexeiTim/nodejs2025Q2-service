@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { UserStore } from './user-store.interface';
 
 const TEST_USER: User = {
   id: randomUUID(),
@@ -13,7 +14,7 @@ const TEST_USER: User = {
 
 const users: User[] = [TEST_USER];
 
-export class InMemoryUserStore {
+export class InMemoryUserStore implements UserStore {
   findUnique(id: string): User {
     return users.find((user) => user.id === id);
   }
@@ -23,13 +24,20 @@ export class InMemoryUserStore {
   }
 
   create(createUserDto: CreateUserDto): User {
-    return {
-      createdAt: 1,
+    const newUser = {
+      createdAt: Date.now(),
       id: randomUUID(),
       login: createUserDto.login,
       password: createUserDto.password,
-      updatedAt: 1,
+      updatedAt: Date.now(),
       version: 1,
     };
+    users.push(newUser);
+    return newUser;
+  }
+
+  delete(id: string) {
+    const userIndex = users.findIndex((user) => user.id === id);
+    users.slice(userIndex, 1);
   }
 }
