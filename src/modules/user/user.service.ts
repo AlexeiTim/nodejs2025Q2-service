@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserStore } from './store/user-store.interface';
 import { UserNotFoundException } from './exeptions/user-not-found.exeption';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UserPasswordInvalid } from './exeptions/user-password-invalid';
 
 @Injectable()
 export class UserService {
@@ -22,8 +23,13 @@ export class UserService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(id: string, updatePasswordDto: UpdatePasswordDto) {
+    const user = this.userStore.findUnique(id);
+    if (!user) throw new UserNotFoundException();
+    if (user.password !== updatePasswordDto.oldPassword)
+      throw new UserPasswordInvalid();
+
+    return this.userStore.update(id, updatePasswordDto);
   }
 
   remove(id: string) {
