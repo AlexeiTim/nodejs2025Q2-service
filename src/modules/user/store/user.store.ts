@@ -39,17 +39,19 @@ export class InMemoryUserStore implements UserStore {
 
   delete(id: string) {
     const userIndex = users.findIndex((user) => user.id === id);
-    users.slice(userIndex, 1);
+    users.splice(userIndex, 1);
   }
 
   update(id: string, dto: UpdatePasswordDto): User {
-    const user = users.find((user) => user.id === id);
+    const userIndex = users.findIndex((user) => user.id === id);
+    const oldUser = users[userIndex];
     const updatedUser: User = {
-      ...user,
+      ...oldUser,
       password: dto.newPassword,
       updatedAt: Date.now(),
-      version: user.version++,
+      version: ++oldUser.version,
     };
+    users[userIndex] = updatedUser;
     return updatedUser;
   }
 }
