@@ -1,26 +1,79 @@
-import { Injectable } from '@nestjs/common';
-import { CreateFavoriteDto } from './dto/create-favorite.dto';
-import { UpdateFavoriteDto } from './dto/update-favorite.dto';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class FavoriteService {
-  create(createFavoriteDto: CreateFavoriteDto) {
-    return 'This action adds a new favorite';
-  }
+  constructor(private readonly databaseService: DatabaseService) {}
 
   findAll() {
-    return `This action returns all favorite`;
+    const favorites = this.databaseService.favorites.getFavorites();
+    return {
+      albums: favorites.albums.map((albumId) =>
+        this.databaseService.albums.findUnique(albumId),
+      ),
+      artists: favorites.artists.map((artistId) =>
+        this.databaseService.artists.findUnique(artistId),
+      ),
+      tracks: favorites.tracks.map((trackId) =>
+        this.databaseService.tracks.findUnique(trackId),
+      ),
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} favorite`;
+  addArtist(id: string) {
+    const artist = this.databaseService.artists.findUnique(id);
+    if (!artist) {
+      throw new HttpException(
+        'Artist not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return this.databaseService.favorites.addArtist(id);
   }
 
-  update(id: number, updateFavoriteDto: UpdateFavoriteDto) {
-    return `This action updates a #${id} favorite`;
+  addAlbum(id: string) {
+    const album = this.databaseService.albums.findUnique(id);
+    if (!album) {
+      throw new HttpException(
+        'Album not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return this.databaseService.favorites.addAlbum(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} favorite`;
+  addTrack(id: string) {
+    const track = this.databaseService.tracks.findUnique(id);
+    if (!track) {
+      throw new HttpException(
+        'Track not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return this.databaseService.favorites.addTrack(id);
+  }
+
+  removeArtist(id: string) {
+    const artist = this.databaseService.artists.findUnique(id);
+    if (!artist) {
+      throw new HttpException('Artist doesnt exists', HttpStatus.NO_CONTENT);
+    }
+    return this.databaseService.favorites.removeArtist(id);
+  }
+
+  removeAlbum(id: string) {
+    const album = this.databaseService.albums.findUnique(id);
+    if (!album) {
+      throw new HttpException('Album doesnt exists', HttpStatus.NO_CONTENT);
+    }
+    return this.databaseService.favorites.removeAlbum(id);
+  }
+
+  removeTrack(id: string) {
+    const track = this.databaseService.tracks.findUnique(id);
+    if (!track) {
+      throw new HttpException('Track doesnt exists', HttpStatus.NO_CONTENT);
+    }
+    return this.databaseService.favorites.removeTrack(id);
   }
 }

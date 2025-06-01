@@ -3,10 +3,14 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { DatabaseService } from '../database/database.service';
 import { TrackNotFoundException } from './exceptions/track-not-found.exception';
+import { FavoriteService } from 'src/favorite/favorite.service';
 
 @Injectable()
 export class TrackService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly favoritesService: FavoriteService,
+  ) {}
 
   create(createTrackDto: CreateTrackDto) {
     return this.databaseService.tracks.create(createTrackDto);
@@ -31,7 +35,8 @@ export class TrackService {
   remove(id: string) {
     const track = this.databaseService.tracks.findUnique(id);
     if (!track) throw new TrackNotFoundException();
-    return this.databaseService.tracks.delete(id);
+    this.favoritesService.removeTrack(id);
+    this.databaseService.tracks.delete(id);
   }
 
   clearArtistId(id: string) {

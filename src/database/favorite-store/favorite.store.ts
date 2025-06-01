@@ -7,10 +7,49 @@ const TEST_FAVORITE: Favorite = {
   tracks: [],
 };
 
-const favorites: Favorite[] = [TEST_FAVORITE];
+const favorites: Favorite = TEST_FAVORITE;
 
 export class InMemoryFavoriteStore implements FavoriteStore {
-  findMany(): Favorite[] {
+  getFavorites(): Favorite {
     return favorites;
+  }
+
+  addArtist(id: string) {
+    favorites.artists.push(id);
+  }
+
+  addAlbum(id: string) {
+    favorites.albums.push(id);
+  }
+
+  addTrack(id: string) {
+    favorites.tracks.push(id);
+  }
+
+  getArtist(id: string) {
+    return favorites.artists.find((artistId) => artistId === id);
+  }
+
+  getTrack(id: string) {
+    return favorites.tracks.find((trackId) => trackId === id);
+  }
+
+  getAlbum(id: string) {
+    return favorites.albums.find((albumId) => albumId === id);
+  }
+
+  removeArtist(id: string) {
+    const index = favorites.artists.findIndex((artistId) => artistId === id);
+    favorites.artists.splice(index, 1);
+  }
+
+  removeAlbum(id: string) {
+    const index = favorites.albums.findIndex((albumId) => albumId === id);
+    favorites.albums.splice(index, 1);
+  }
+
+  removeTrack(id: string) {
+    const index = favorites.tracks.findIndex((trackId) => trackId === id);
+    favorites.tracks.splice(index, 1);
   }
 }

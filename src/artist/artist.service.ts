@@ -5,6 +5,7 @@ import { DatabaseService } from '../database/database.service';
 import { ArtistNotFoundException } from './exceptions/artist-not-found.exception';
 import { TrackService } from '../track/track.service';
 import { AlbumService } from 'src/album/album.service';
+import { FavoriteService } from 'src/favorite/favorite.service';
 
 @Injectable()
 export class ArtistService {
@@ -12,6 +13,7 @@ export class ArtistService {
     private readonly databaseService: DatabaseService,
     private trackService: TrackService,
     private albumService: AlbumService,
+    private favoriteService: FavoriteService,
   ) {}
 
   create(createArtistDto: CreateArtistDto) {
@@ -37,8 +39,9 @@ export class ArtistService {
   remove(id: string) {
     const artist = this.databaseService.artists.findUnique(id);
     if (!artist) throw new ArtistNotFoundException();
-    this.databaseService.artists.delete(id);
+    this.favoriteService.removeArtist(id);
     this.trackService.clearArtistId(id);
     this.albumService.clearArtistId(id);
+    this.databaseService.artists.delete(id);
   }
 }

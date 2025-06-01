@@ -4,12 +4,14 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { AlbumNotFoundException } from './exceptions/album-not-found.exception';
 import { TrackService } from 'src/track/track.service';
+import { FavoriteService } from 'src/favorite/favorite.service';
 
 @Injectable()
 export class AlbumService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly tracksService: TrackService,
+    private readonly favoriteService: FavoriteService,
   ) {}
 
   create(createAlbumDto: CreateAlbumDto) {
@@ -29,14 +31,15 @@ export class AlbumService {
   update(id: string, updateAlbumDto: UpdateAlbumDto) {
     const album = this.databaseService.albums.findUnique(id);
     if (!album) throw new AlbumNotFoundException();
-    return this.databaseService.albums.update(id, updateAlbumDto);
+    this.databaseService.albums.update(id, updateAlbumDto);
   }
 
   remove(id: string) {
     const album = this.databaseService.albums.findUnique(id);
     if (!album) throw new AlbumNotFoundException();
-    this.databaseService.albums.delete(id);
+    this.favoriteService.removeAlbum(id);
     this.tracksService.clearAlbumId(id);
+    this.databaseService.albums.delete(id);
   }
 
   clearArtistId(id: string) {
