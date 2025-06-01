@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
@@ -54,25 +59,25 @@ export class FavoriteService {
   }
 
   removeArtist(id: string) {
-    const artist = this.databaseService.artists.findUnique(id);
-    if (!artist) {
-      throw new HttpException('Artist doesnt exists', HttpStatus.NO_CONTENT);
+    const artistId = this.databaseService.favorites.getArtist(id);
+    if (!artistId) {
+      throw new NotFoundException('Album not found in favorites');
     }
     return this.databaseService.favorites.removeArtist(id);
   }
 
   removeAlbum(id: string) {
-    const album = this.databaseService.albums.findUnique(id);
-    if (!album) {
-      throw new HttpException('Album doesnt exists', HttpStatus.NO_CONTENT);
+    const albumId = this.databaseService.favorites.getAlbum(id);
+    if (!albumId) {
+      throw new NotFoundException('Album not found in favorites');
     }
     return this.databaseService.favorites.removeAlbum(id);
   }
 
   removeTrack(id: string) {
-    const track = this.databaseService.tracks.findUnique(id);
-    if (!track) {
-      throw new HttpException('Track doesnt exists', HttpStatus.NO_CONTENT);
+    const trackid = this.databaseService.favorites.getTrack(id);
+    if (!trackid) {
+      throw new NotFoundException('Album not found in favorites');
     }
     return this.databaseService.favorites.removeTrack(id);
   }
