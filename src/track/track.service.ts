@@ -35,8 +35,8 @@ export class TrackService {
   remove(id: string) {
     const track = this.databaseService.tracks.findUnique(id);
     if (!track) throw new TrackNotFoundException();
-    this.favoritesService.removeTrack(id);
     this.databaseService.tracks.delete(id);
+    this.databaseService.favorites.removeTrack(id);
   }
 
   clearArtistId(id: string) {

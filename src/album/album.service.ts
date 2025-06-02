@@ -37,9 +37,9 @@ export class AlbumService {
   remove(id: string) {
     const album = this.databaseService.albums.findUnique(id);
     if (!album) throw new AlbumNotFoundException();
-    this.favoriteService.removeAlbum(id);
-    this.tracksService.clearAlbumId(id);
     this.databaseService.albums.delete(id);
+    this.tracksService.clearAlbumId(id);
+    this.favoriteService.removeAlbum(id);
   }
 
   clearArtistId(id: string) {

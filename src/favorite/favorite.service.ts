@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
@@ -61,24 +56,24 @@ export class FavoriteService {
   removeArtist(id: string) {
     const artistId = this.databaseService.favorites.getArtist(id);
     if (!artistId) {
-      throw new NotFoundException('Album not found in favorites');
+      throw new HttpException('Track not found', HttpStatus.NO_CONTENT);
     }
-    return this.databaseService.favorites.removeArtist(id);
+    this.databaseService.favorites.removeArtist(id);
   }
 
   removeAlbum(id: string) {
     const albumId = this.databaseService.favorites.getAlbum(id);
     if (!albumId) {
-      throw new NotFoundException('Album not found in favorites');
+      throw new HttpException('Track not found', HttpStatus.NO_CONTENT);
     }
-    return this.databaseService.favorites.removeAlbum(id);
+    this.databaseService.favorites.removeAlbum(id);
   }
 
   removeTrack(id: string) {
     const trackid = this.databaseService.favorites.getTrack(id);
     if (!trackid) {
-      throw new NotFoundException('Album not found in favorites');
+      throw new HttpException('Track not found', HttpStatus.NO_CONTENT);
     }
-    return this.databaseService.favorites.removeTrack(id);
+    this.databaseService.favorites.removeTrack(id);
   }
 }
