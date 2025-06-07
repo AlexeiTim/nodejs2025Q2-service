@@ -6,8 +6,12 @@ COPY package*.json ./
 
 RUN npm ci
 
+   # Add security check during build
+RUN npm audit || true
+
 COPY . .
 
+# Add build step to compile TypeScript
 RUN npm run build
 
 FROM node:20.11-alpine
