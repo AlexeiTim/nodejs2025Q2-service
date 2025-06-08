@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.0'
 
 services:
   app:
@@ -10,7 +10,11 @@ services:
     volumes:
       - ./src:/app/src
       - ./node_modules:/app/node_modules
-    command: npm run start:dev
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.build.json:/app/tsconfig.build.json
+      - ./nest-cli.json:/app/nest-cli.json
+      - ./prisma:/app/prisma
+    command: sh -c "npx prisma generate && npm run start:dev"
     depends_on:
       - postgres
     networks:
