@@ -1,47 +1,26 @@
-version: '3.0'
+version: '3.8'
 
 services:
   app:
-    build: .
+    image: alexeitim/nodejs2025q2-service:latest
     ports:
-      - '${PORT}:${PORT}'
-    env_file:
-      - .env
-    volumes:
-      - ./src:/app/src
-      - ./node_modules:/app/node_modules
-      - ./tsconfig.json:/app/tsconfig.json
-      - ./tsconfig.build.json:/app/tsconfig.build.json
-      - ./nest-cli.json:/app/nest-cli.json
-      - ./prisma:/app/prisma
-    command: sh -c "npx prisma generate && npm run start:dev"
+      - '4000:4000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres?schema=public
+      - PORT=4000
     depends_on:
       - postgres
-    networks:
-      - app-network
-    restart: always
 
   postgres:
-    build:
-      context: .
-      dockerfile: Dockerfile.db
+    image: postgres:16-alpine
     ports:
       - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - postgres_logs:/var/log/postgresql
-    env_file:
-      - .env
-    networks:
-      - app-network
-    restart: always
-
-networks:
-  app-network:
-    driver: bridge
 
 volumes:
   postgres_data:
-    driver: local
-  postgres_logs:
-    driver: local
