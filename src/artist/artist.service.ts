@@ -11,37 +11,79 @@ import { FavoriteService } from 'src/favorite/favorite.service';
 export class ArtistService {
   constructor(
     private readonly databaseService: DatabaseService,
-    private trackService: TrackService,
-    private albumService: AlbumService,
-    private favoriteService: FavoriteService,
+    private readonly trackService: TrackService,
+    private readonly albumService: AlbumService,
+    private readonly favoriteService: FavoriteService,
   ) {}
 
-  create(createArtistDto: CreateArtistDto) {
-    return this.databaseService.artists.create(createArtistDto);
+  async create(createArtistDto: CreateArtistDto) {
+    try {
+      return await this.databaseService.artists.create(createArtistDto);
+    } catch (error) {
+      throw new Error(`Failed to create artist: ${error.message}`);
+    }
   }
 
-  findAll() {
-    return this.databaseService.artists.findMany();
+  async findAll() {
+    try {
+      return await this.databaseService.artists.findMany();
+    } catch (error) {
+      throw new Error(`Failed to find artists: ${error.message}`);
+    }
   }
 
-  findOne(id: string) {
-    const artist = this.databaseService.artists.findUnique(id);
-    if (!artist) throw new ArtistNotFoundException();
-    return artist;
+  async findOne(id: string) {
+    try {
+      const artist = await this.databaseService.artists.findUnique(id);
+      if (!artist) {
+        throw new ArtistNotFoundException();
+      }
+      return artist;
+    } catch (error) {
+      if (error instanceof ArtistNotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to find artist: ${error.message}`);
+    }
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
-    const artist = this.databaseService.artists.findUnique(id);
-    if (!artist) throw new ArtistNotFoundException();
-    return this.databaseService.artists.update(id, updateArtistDto);
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
+    try {
+      const artist = await this.databaseService.artists.findUnique(id);
+      if (!artist) {
+        throw new ArtistNotFoundException();
+      }
+      return await this.databaseService.artists.update(id, updateArtistDto);
+    } catch (error) {
+      if (error instanceof ArtistNotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to update artist: ${error.message}`);
+    }
   }
 
-  remove(id: string) {
-    const artist = this.databaseService.artists.findUnique(id);
-    if (!artist) throw new ArtistNotFoundException();
-    this.databaseService.artists.delete(id);
-    this.trackService.clearArtistId(id);
-    this.albumService.clearArtistId(id);
-    this.favoriteService.removeArtist(id);
+  async remove(id: string) {
+    try {
+      const artist = await this.databaseService.artists.findUnique(id);
+      if (!artist) {
+        throw new ArtistNotFoundException();
+      }
+
+      try {
+        await this.favoriteService.removeArtist(id);
+      } catch (error) {}
+
+      await Promise.all([
+        this.trackService.clearArtistId(id),
+        this.albumService.clearArtistId(id),
+      ]);
+
+      await this.databaseService.artists.delete(id);
+    } catch (error) {
+      if (error instanceof ArtistNotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to remove artist: ${error.message}`);
+    }
   }
 }

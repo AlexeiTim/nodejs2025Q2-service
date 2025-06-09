@@ -1,50 +1,122 @@
-import { CreateAlbumDto } from 'src/album/dto/create-album.dto';
-import { AlbumStore } from './album-store.interface';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 import { Album } from 'src/album/entities/album.entity';
+import { AlbumStore } from './album-store.interface';
+import { CreateAlbumDto } from 'src/album/dto/create-album.dto';
 import { UpdateAlbumDto } from 'src/album/dto/update-album.dto';
-import { randomUUID } from 'crypto';
+import { AlbumNotFoundException } from 'src/album/exceptions/album-not-found.exception';
+import { Prisma } from '@prisma/client';
 
-const TEST_ALBUM: Album = {
-  id: 'fc3142ad-a6c2-4688-b635-b846d8324f0a',
-  name: 'test',
-  artistId: null,
-  year: 1,
-};
+@Injectable()
+export class PrismaAlbumStore implements AlbumStore {
+  constructor(private prisma: PrismaService) {}
 
-const albums: Album[] = [TEST_ALBUM];
-
-export class InMemoryAlbumsStore implements AlbumStore {
-  findMany(): Album[] {
-    return albums;
-  }
-
-  findUnique(id: string) {
-    const album = albums.find((album) => album.id === id);
-    return album;
-  }
-
-  create(dto: CreateAlbumDto) {
-    const newAlbum: Album = {
-      id: randomUUID(),
-      ...dto,
-      artistId: dto.artistId || null,
+  private mapToAlbum(prismaAlbum: any): Album {
+    return {
+      id: prismaAlbum.id,
+      name: prismaAlbum.name,
+      year: prismaAlbum.year,
+      artistId: prismaAlbum.artistId,
+      createdAt: prismaAlbum.createdAt,
+      updatedAt: prismaAlbum.updatedAt,
     };
-    albums.push(newAlbum);
-    return newAlbum;
   }
 
-  update(id: string, dto: UpdateAlbumDto) {
-    const albumIndex = albums.findIndex((album) => album.id === id);
-    const updatedAlbum = {
-      ...dto,
-      id,
-    };
-    albums[albumIndex] = updatedAlbum;
-    return updatedAlbum;
+  async findMany(): Promise<Album[]> {
+    try {
+      const albums = await this.prisma.album.findMany();
+      return albums.map(this.mapToAlbum);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new Error(`Database error: ${error.message}`);
+      }
+      throw error;
+    }
   }
 
-  delete(id: string) {
-    const albumIndex = albums.findIndex((album) => album.id === id);
-    albums.splice(albumIndex, 1);
+  async findUnique(id: string): Promise<Album> {
+    try {
+      const album = await this.prisma.album.findUnique({
+        where: { id },
+      });
+      if (!album) {
+        throw new AlbumNotFoundException();
+      }
+      return this.mapToAlbum(album);
+    } catch (error) {
+      if (error instanceof AlbumNotFoundException) {
+        throw error;
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new Error(`Database error: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  async create(dto: CreateAlbumDto): Promise<Album> {
+    try {
+      const album = await this.prisma.album.create({
+        data: {
+          name: dto.name,
+          year: dto.year,
+          artistId: dto.artistId || null,
+        },
+      });
+      return this.mapToAlbum(album);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new Error('Album with this name already exists');
+        }
+        throw new Error(`Database error: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  async update(id: string, dto: UpdateAlbumDto): Promise<Album> {
+    try {
+      const album = await this.prisma.album.findUnique({
+        where: { id },
+      });
+
+      if (!album) {
+        throw new AlbumNotFoundException();
+      }
+
+      const updatedAlbum = await this.prisma.album.update({
+        where: { id },
+        data: dto,
+      });
+      return this.mapToAlbum(updatedAlbum);
+    } catch (error) {
+      if (error instanceof AlbumNotFoundException) {
+        throw error;
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new Error('Album with this name already exists');
+        }
+        throw new Error(`Database error: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      await this.prisma.album.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new AlbumNotFoundException();
+        }
+        throw new Error(`Database error: ${error.message}`);
+      }
+      throw error;
+    }
   }
 }

@@ -5,6 +5,7 @@ import { DatabaseService } from 'src/database/database.service';
 import { AlbumNotFoundException } from './exceptions/album-not-found.exception';
 import { TrackService } from 'src/track/track.service';
 import { FavoriteService } from 'src/favorite/favorite.service';
+import { ArtistNotFoundException } from 'src/artist/exceptions/artist-not-found.exception';
 
 @Injectable()
 export class AlbumService {
@@ -14,42 +15,115 @@ export class AlbumService {
     private readonly favoriteService: FavoriteService,
   ) {}
 
-  create(createAlbumDto: CreateAlbumDto) {
-    return this.databaseService.albums.create(createAlbumDto);
+  async create(createAlbumDto: CreateAlbumDto) {
+    try {
+      if (createAlbumDto.artistId) {
+        const artist = await this.databaseService.artists.findUnique(
+          createAlbumDto.artistId,
+        );
+        if (!artist) {
+          throw new ArtistNotFoundException();
+        }
+      }
+
+      return await this.databaseService.albums.create(createAlbumDto);
+    } catch (error) {
+      if (error instanceof ArtistNotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to create album: ${error.message}`);
+    }
   }
 
-  findAll() {
-    return this.databaseService.albums.findMany();
+  async findAll() {
+    try {
+      return await this.databaseService.albums.findMany();
+    } catch (error) {
+      throw new Error(`Failed to get albums: ${error.message}`);
+    }
   }
 
-  findOne(id: string) {
-    const album = this.databaseService.albums.findUnique(id);
-    if (!album) throw new AlbumNotFoundException();
-    return album;
+  async findOne(id: string) {
+    try {
+      const album = await this.databaseService.albums.findUnique(id);
+      if (!album) {
+        throw new AlbumNotFoundException();
+      }
+      return album;
+    } catch (error) {
+      if (error instanceof AlbumNotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to get album: ${error.message}`);
+    }
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto) {
-    const album = this.databaseService.albums.findUnique(id);
-    if (!album) throw new AlbumNotFoundException();
-    this.databaseService.albums.update(id, updateAlbumDto);
+  async update(id: string, updateAlbumDto: UpdateAlbumDto) {
+    try {
+      const album = await this.databaseService.albums.findUnique(id);
+      if (!album) {
+        throw new AlbumNotFoundException();
+      }
+
+      if (updateAlbumDto.artistId) {
+        const artist = await this.databaseService.artists.findUnique(
+          updateAlbumDto.artistId,
+        );
+        if (!artist) {
+          throw new ArtistNotFoundException();
+        }
+      }
+
+      return await this.databaseService.albums.update(id, updateAlbumDto);
+    } catch (error) {
+      if (
+        error instanceof AlbumNotFoundException ||
+        error instanceof ArtistNotFoundException
+      ) {
+        throw error;
+      }
+      throw new Error(`Failed to update album: ${error.message}`);
+    }
   }
 
-  remove(id: string) {
-    const album = this.databaseService.albums.findUnique(id);
-    if (!album) throw new AlbumNotFoundException();
-    this.databaseService.albums.delete(id);
-    this.tracksService.clearAlbumId(id);
-    this.favoriteService.removeAlbum(id);
+  async remove(id: string) {
+    try {
+      const album = await this.databaseService.albums.findUnique(id);
+      if (!album) {
+        throw new AlbumNotFoundException();
+      }
+
+      try {
+        await this.favoriteService.removeAlbum(id);
+      } catch (error) {}
+
+      await this.tracksService.clearAlbumId(id);
+
+      await this.databaseService.albums.delete(id);
+    } catch (error) {
+      if (error instanceof AlbumNotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to remove album: ${error.message}`);
+    }
   }
 
-  clearArtistId(id: string) {
-    const albums = this.databaseService.albums.findMany();
-    const albumsWithArtistId = albums.filter((album) => album.artistId === id);
-    albumsWithArtistId.forEach((album) => {
-      this.databaseService.albums.update(album.id, {
-        ...album,
-        artistId: null,
-      });
-    });
+  async clearArtistId(id: string) {
+    try {
+      const albums = await this.databaseService.albums.findMany();
+      const albumsWithArtistId = albums.filter(
+        (album) => album.artistId === id,
+      );
+
+      for (const album of albumsWithArtistId) {
+        await this.databaseService.albums.update(album.id, {
+          name: album.name,
+          year: album.year,
+          artistId: null,
+        });
+      }
+    } catch (error) {
+      throw new Error(`Failed to clear artist ID: ${error.message}`);
+    }
   }
 }

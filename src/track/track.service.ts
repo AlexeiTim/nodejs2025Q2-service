@@ -12,52 +12,80 @@ export class TrackService {
     private readonly favoritesService: FavoriteService,
   ) {}
 
-  create(createTrackDto: CreateTrackDto) {
+  async create(createTrackDto: CreateTrackDto) {
     return this.databaseService.tracks.create(createTrackDto);
   }
 
-  findAll() {
+  async findAll() {
     return this.databaseService.tracks.findMany();
   }
 
-  findOne(id: string) {
-    const track = this.databaseService.tracks.findUnique(id);
-    if (!track) throw new TrackNotFoundException();
-    return track;
+  async findOne(id: string) {
+    try {
+      return await this.databaseService.tracks.findUnique(id);
+    } catch (error) {
+      if (error instanceof TrackNotFoundException) {
+        throw error;
+      }
+      throw new TrackNotFoundException();
+    }
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
-    const track = this.databaseService.tracks.findUnique(id);
-    if (!track) throw new TrackNotFoundException();
-    return this.databaseService.tracks.update(id, updateTrackDto);
+  async update(id: string, updateTrackDto: UpdateTrackDto) {
+    try {
+      return await this.databaseService.tracks.update(id, updateTrackDto);
+    } catch (error) {
+      if (error instanceof TrackNotFoundException) {
+        throw error;
+      }
+      throw new TrackNotFoundException();
+    }
   }
 
-  remove(id: string) {
-    const track = this.databaseService.tracks.findUnique(id);
-    if (!track) throw new TrackNotFoundException();
-    this.databaseService.tracks.delete(id);
-    this.databaseService.favorites.removeTrack(id);
+  async remove(id: string) {
+    try {
+      try {
+        await this.favoritesService.removeTrack(id);
+      } catch (error) {}
+
+      await this.databaseService.tracks.delete(id);
+    } catch (error) {
+      if (error instanceof TrackNotFoundException) {
+        throw error;
+      }
+      throw new TrackNotFoundException();
+    }
   }
 
-  clearArtistId(id: string) {
-    const tracks = this.databaseService.tracks.findMany();
-    const tracksWithArtistId = tracks.filter((track) => track.artistId === id);
-    tracksWithArtistId.forEach((track) => {
-      this.databaseService.tracks.update(track.id, {
-        ...track,
-        artistId: null,
-      });
-    });
+  async clearArtistId(id: string) {
+    try {
+      const tracks = await this.databaseService.tracks.findMany();
+      const tracksWithArtistId = tracks.filter(
+        (track) => track.artistId === id,
+      );
+
+      for (const track of tracksWithArtistId) {
+        await this.databaseService.tracks.update(track.id, {
+          artistId: null,
+        });
+      }
+    } catch (error) {
+      throw new Error(`Failed to clear artist ID: ${error.message}`);
+    }
   }
 
-  clearAlbumId(id: string) {
-    const tracks = this.databaseService.tracks.findMany();
-    const tracksWithAlbumId = tracks.filter((track) => track.albumId === id);
-    tracksWithAlbumId.forEach((track) => {
-      this.databaseService.tracks.update(track.id, {
-        ...track,
-        albumId: null,
-      });
-    });
+  async clearAlbumId(id: string) {
+    try {
+      const tracks = await this.databaseService.tracks.findMany();
+      const tracksWithAlbumId = tracks.filter((track) => track.albumId === id);
+
+      for (const track of tracksWithAlbumId) {
+        await this.databaseService.tracks.update(track.id, {
+          albumId: null,
+        });
+      }
+    } catch (error) {
+      throw new Error(`Failed to clear album ID: ${error.message}`);
+    }
   }
 }

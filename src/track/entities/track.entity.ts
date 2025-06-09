@@ -4,4 +4,6 @@ export class Track {
   artistId: string | null;
   albumId: string | null;
   duration: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

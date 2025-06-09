@@ -30,19 +30,21 @@ model Album {
   artistId  String?
   artist    Artist?  @relation(fields: [artistId], references: [id])
   tracks    Track[]
-  favoritesId String?
-  favorites Favorites? @relation("FavoritesToAlbums", fields: [favoritesId], references: [id])
+  favorites Favorites[] @relation("FavoritesToAlbums")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   @@map("albums")
 }
 
 model Artist {
   id        String   @id @default(uuid())
   name      String
-  grammy     Boolean
+  grammy    Boolean
   albums    Album[]
   tracks    Track[]
-  favoritesId String?
-  favorites Favorites? @relation("FavoritesToArtists", fields: [favoritesId], references: [id])
+  favorites Favorites[] @relation("FavoritesToArtists")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   @@map("artists")
 }
 
@@ -54,8 +56,9 @@ model Track {
   artistId  String?
   album     Album?   @relation(fields: [albumId], references: [id])
   artist    Artist?  @relation(fields: [artistId], references: [id])
-  favoritesId String?
-  favorites Favorites? @relation("FavoritesToTracks", fields: [favoritesId], references: [id])
+  favorites Favorites[] @relation("FavoritesToTracks")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   @@map("tracks")
 }
 
@@ -64,5 +67,7 @@ model Favorites {
   albums    Album[]  @relation("FavoritesToAlbums")
   artists   Artist[] @relation("FavoritesToArtists")
   tracks    Track[]  @relation("FavoritesToTracks")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   @@map("favorites")
 }
