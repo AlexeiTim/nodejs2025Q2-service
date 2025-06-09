@@ -1,5 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
-import { User } from '../entities/user.entity';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
 export class UserResponseDto {
@@ -13,12 +12,14 @@ export class UserResponseDto {
   version: number;
 
   @Expose()
-  createdAt: number;
+  @Transform(({ value }) => value.getTime())
+  createdAt: Date;
 
   @Expose()
-  updatedAt: number;
+  @Transform(({ value }) => value.getTime())
+  updatedAt: Date;
 
-  constructor(user: User) {
-    Object.assign(this, user);
+  constructor(partial: Partial<UserResponseDto>) {
+    Object.assign(this, partial);
   }
 }

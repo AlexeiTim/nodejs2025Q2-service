@@ -10,11 +10,13 @@ import {
   Put,
   UseInterceptors,
   ClassSerializerInterceptor,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserParamDto } from './dto/user-param.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UserPasswordInvalid } from './exeptions/user-password-invalid';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('user')
@@ -37,16 +39,23 @@ export class UserController {
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param() params: UserParamDto,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    return this.userService.update(params.id, updatePasswordDto);
+    try {
+      return await this.userService.update(params.id, updatePasswordDto);
+    } catch (error) {
+      if (error instanceof UserPasswordInvalid) {
+        throw new ForbiddenException();
+      }
+      throw error;
+    }
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param() params: UserParamDto) {
-    this.userService.remove(params.id);
+    return this.userService.remove(params.id);
   }
 }

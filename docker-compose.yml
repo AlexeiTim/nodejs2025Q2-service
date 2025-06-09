@@ -2,12 +2,26 @@ version: '3.8'
 
 services:
   app:
-    image: alexeitim/nodejs2025q2-service:latest
+    build: .
     ports:
       - '4000:4000'
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres?schema=public
       - PORT=4000
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        echo 'Waiting for postgres...' &&
+        while ! nc -z postgres 5432; do
+          sleep 1
+        done &&
+        echo 'PostgreSQL started' &&
+        npx prisma db push --force-reset &&
+        npm run start:dev
+      "
     depends_on:
       - postgres
 
