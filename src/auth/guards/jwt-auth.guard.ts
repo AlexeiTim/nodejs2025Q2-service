@@ -27,6 +27,11 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
+
+    if (request.path === '/doc' || request.path === '/') {
+      return true;
+    }
+
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
