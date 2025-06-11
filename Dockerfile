@@ -1,0 +1,19 @@
+FROM node:22.14.0-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache netcat-openbsd
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN mkdir -p /app/logs && chmod 777 /app/logs
+
+RUN npx prisma generate
+
+EXPOSE 4000
+
+CMD ["npm", "run", "start:dev"]
