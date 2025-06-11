@@ -16,6 +16,9 @@ export class UserService {
         login: createUserDto.login,
         password: createUserDto.password,
       },
+      omit: {
+        password: true,
+      },
     });
     return new UserResponseDto(newUser);
   }
@@ -79,5 +82,17 @@ export class UserService {
         id,
       },
     });
+  }
+
+  async findByLogin(login: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        login,
+      },
+    });
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+    return user;
   }
 }

@@ -9,6 +9,7 @@ import { AlbumModule } from './album/album.module';
 import { TrackModule } from './track/track.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { DatabaseModule } from './database/database.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { DatabaseModule } from './database/database.module';
     AlbumModule,
     TrackModule,
     FavoriteModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
