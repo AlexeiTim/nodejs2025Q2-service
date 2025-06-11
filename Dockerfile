@@ -10,6 +10,8 @@ RUN npm install
 
 COPY . .
 
+RUN mkdir -p /app/logs && chmod 777 /app/logs
+
 RUN npx prisma generate
 
 EXPOSE 4000
