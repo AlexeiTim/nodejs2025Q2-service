@@ -3,6 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
+    image: alexeitim/nodejs2025q2-service:latest
     ports:
       - '${PORT}:${PORT}'
     environment:
