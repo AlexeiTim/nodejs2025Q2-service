@@ -9,7 +9,13 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - PORT=${PORT}
       - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ACCESS_TOKEN_EXPIRES_IN=${JWT_ACCESS_TOKEN_EXPIRES_IN}
+      - JWT_REFRESH_TOKEN_EXPIRES_IN=${JWT_REFRESH_TOKEN_EXPIRES_IN}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - LOG_MAX_FILE_SIZE=${LOG_MAX_FILE_SIZE}
     volumes:
+      - ./logs:/app/logs
       - .:/app
       - /app/node_modules
     command: >
